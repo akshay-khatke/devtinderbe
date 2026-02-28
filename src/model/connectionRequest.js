@@ -20,7 +20,8 @@ const connectionRequestSchema = new mongoose.Schema({
         },
         // default: "pending",
         required: true
-    }
+    },
+
 }, {
     timestamps: true
 })

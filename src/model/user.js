@@ -34,23 +34,39 @@ const userSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        required: true,
+        default: 18,
         validate(value) {
             if (value < 18) {
                 throw new Error("Invalid age")
             }
         }
     },
+
     gender: {
         type: String,
-        required: true,
-        enum: ["male", "female", "other"]
+        enum: {
+            values: ["male", "female", "other"],
+            message: `{VALUE} is not a valid gender type`,
+        }
     },
     role: {
         type: String,
-        required: true,
+        default: "user",
         enum: ["user", "admin"]
-    }
+    },
+    photoUrl: {
+        default: "https://geographyandyou.com/images/user-profile.png",
+        type: String,
+        required: true
+    },
+    skills: {
+        type: [String],
+    },
+
+    about: {
+        type: String,
+        default: "This is a default about of the user!",
+    },
 },
     {
         timestamps: true

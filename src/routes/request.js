@@ -42,7 +42,6 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
         })
         console.log(coonectionRequest, "check the all request 3")
         const data = await coonectionRequest.save();
-        console.log(data, "check the all request 4")
         res.json({
             message: req.user.firstName + " is " + status + " in " + toUser.firstName,
             data

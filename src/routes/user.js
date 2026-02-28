@@ -2,17 +2,18 @@ import express from "express";
 import User from "../model/user.js";
 import { userAuth } from "../middleware/auth.js";
 import ConnectionRequestModel from "../model/connectionRequest.js";
+const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
 
 const userRouter = express.Router()
 //pending connection request
-userRouter.get("/pendingRequests/received", userAuth, async (req, res) => {
+userRouter.get("/requestReceived", userAuth, async (req, res) => {
     try {
         const loggedUser = req.user
 
         const connectionRequest = await ConnectionRequestModel.find({
             toUserId: loggedUser._id,
             status: "interested"
-        }).populate("fromUserId", ["firstName", "lastName", "emailId"])
+        }).populate("fromUserId", USER_SAFE_DATA)
         // populate("fromUserId", "firstName lastName emailId")
         // populate("fromUserId") //all object
         //if passed fromUserId all data object send from DB
@@ -22,6 +23,10 @@ userRouter.get("/pendingRequests/received", userAuth, async (req, res) => {
         res.status(400).send("ERROR : " + err.message)
     }
 })
+
+
+
+
 
 userRouter.get("/connections", userAuth, async (req, res) => {
 
@@ -36,7 +41,7 @@ userRouter.get("/connections", userAuth, async (req, res) => {
                 { toUserId: loggedUser._id, status: "accepted" },
                 { fromUserId: loggedUser._id, status: "accepted" }
             ]
-        }).populate("fromUserId", ["firstName", "lastName", "emailId"]).populate("toUserId", ["firstName", "lastName", "emailId"])
+        }).populate("fromUserId", USER_SAFE_DATA).populate("toUserId", USER_SAFE_DATA)
 
         console.log(connectionRequest, "check the connection request asdhh")
 
@@ -102,7 +107,6 @@ userRouter.get("/feed", userAuth, async (req, res) => {
             $and: [{
                 _id: {
                     $nin: Array.from(blockUsers)
-
                 }
             },
             {
@@ -111,7 +115,7 @@ userRouter.get("/feed", userAuth, async (req, res) => {
 
                 }
             }]
-        }).select("firstName lastName emailId").skip(skip).limit(limit)
+        }).select("firstName lastName emailId photoUrl age gender about skills").skip(skip).limit(limit)
 
         // if thousenads of user are there so evry time i doent want to send the all user i want 10 users at time so need pagination 
         console.log(users, "check the users uasja")

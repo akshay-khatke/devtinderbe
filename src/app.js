@@ -9,16 +9,20 @@ import cookieParser from "cookie-parser"; //if we want the read the cookies for 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {userAuth} from "./middleware/auth.js"
-
+import createServer from 'http'
 import authRouter from "./routes/auth.js"
 import requestRouter from "./routes/request.js"
 import profileRouter from "./routes/profile.js"
 import userRouter from "./routes/user.js"
-
+import cors from "cors";
 app.use(cookieParser())//middleware
 app.use(express.json());//the data send in request is in json format so we need to use the express.json here we need the middle
 
 
+app.use(cors({
+    origin:"http://localhost:5173",
+    credentials:true
+}));
 
 
 app.use("/auth",authRouter)

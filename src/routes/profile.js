@@ -36,17 +36,18 @@ profileRouter.get("/view", userAuth, (req, res) => {
 })
 
 profileRouter.patch("/edit", userAuth, async (req, res) => {
+    console.log(req.body, 'check the body data 123')
     try {
-        if (!validateEditProfileData(req)) {
-            throw new Error("invalid edit profile data")
-        }
+        // if (!validateEditProfileData(req)) {
+        //     throw new Error("invalid edit profile data")
+        // }
         const user = req.user
         Object.keys(req.body).forEach(key => {
             user[key] = req.body[key]
         })
         console.log(user, 'check the user data 12344888')
         await user.save()
-        res.send("profile updated successfully")
+        res.send({ message: "profile updated successfully", data: user })
 
     } catch (err) {
         console.log(err)

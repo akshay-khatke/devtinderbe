@@ -7,25 +7,71 @@ const authRouter = express.Router()
 
 authRouter.post("/signUp", async (req, res) => {
     console.log(req, 'chedck body')
-    // validateSignUpData(req)
-    const userObj = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        emailId: req.body.emailId,
-        password: req.body.password,
-        age: req.body.age,
-        gender: req.body.gender,
-        role: req.body.role
-    }
-    const user = new User(userObj)
+
     try {
+        validateSignUpData(req)
 
-        const saltRound = await bcrypt.genSalt(10)//more number more password safe
-        user.password = await bcrypt.hash(user.password, saltRound)
-        await user.save()
-        res.send("user added successfully")
+        // const userObj = {
+        //     firstName: req.body.firstName,
+        //     lastName: req.body.lastName,
+        //     emailId: req.body.emailId,
+        //     password: req.body.password,
+        //     age: req.body.age,
+        //     gender: req.body.gender,
+        //     role: req.body.role,
+        //     skills: req.body.skills,
+        //     photoUrl: req.body.photoUrl,
+        //     about: req.body.about
+        // }
+
+        // const user = new User(userObj)
+
+        // const token = user.generateToken()
+
+        // res.cookie("token", token, { expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
+        // res.json({ message: "user added successfully", data: user })
+
+        // await user.save()
+
+
+
+
+
+
+
+
+
+
+        const { firstName, lastName, emailId, password } = req.body;
+
+        // Encrypt the password
+        const passwordHash = await bcrypt.hash(password, 10);
+        console.log(passwordHash);
+
+        //   Creating a new instance of the User model
+        const user = new User({
+            firstName,
+            lastName,
+            emailId,
+            password: passwordHash,
+        });
+
+        const savedUser = await user.save();
+        const token = await savedUser.generateToken();
+
+        res.cookie("token", token, {
+            expires: new Date(Date.now() + 8 * 3600000),
+        });
+
+        res.json({ message: "User Added successfully!", data: savedUser });
+
+
+
+
+
+
+        // res.send("user added successfully")
     } catch (err) {
-
         res.status(400).send(`Error: ${err.message}`)
     }
 })
