@@ -11,37 +11,6 @@ authRouter.post("/signUp", async (req, res) => {
     try {
         validateSignUpData(req)
 
-        // const userObj = {
-        //     firstName: req.body.firstName,
-        //     lastName: req.body.lastName,
-        //     emailId: req.body.emailId,
-        //     password: req.body.password,
-        //     age: req.body.age,
-        //     gender: req.body.gender,
-        //     role: req.body.role,
-        //     skills: req.body.skills,
-        //     photoUrl: req.body.photoUrl,
-        //     about: req.body.about
-        // }
-
-        // const user = new User(userObj)
-
-        // const token = user.generateToken()
-
-        // res.cookie("token", token, { expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
-        // res.json({ message: "user added successfully", data: user })
-
-        // await user.save()
-
-
-
-
-
-
-
-
-
-
         const { firstName, lastName, emailId, password } = req.body;
 
         // Encrypt the password

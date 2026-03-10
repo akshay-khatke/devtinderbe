@@ -6,21 +6,24 @@ import connectDB from './config/database.js'
 import User from "./model/user.js";
 import { validateSignUpData } from "./utils/validation.js";
 import cookieParser from "cookie-parser"; //if we want the read the cookies for that we will require this
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import {userAuth} from "./middleware/auth.js"
-import createServer from 'http'
 import authRouter from "./routes/auth.js"
 import requestRouter from "./routes/request.js"
 import profileRouter from "./routes/profile.js"
 import userRouter from "./routes/user.js"
 import cors from "cors";
+import dotenv from "dotenv";
+
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { socketConnection } from "./utils/socket.js";
+import chatRouter from "./routes/chat.js";
+dotenv.config();
 app.use(cookieParser())//middleware
 app.use(express.json());//the data send in request is in json format so we need to use the express.json here we need the middle
 
 
 app.use(cors({
-    origin:"http://localhost:5173",
+    origin:"http://localhost:5174",
     credentials:true
 }));
 
@@ -29,176 +32,15 @@ app.use("/auth",authRouter)
 app.use("/request",requestRouter)
 app.use("/profile",profileRouter)
 app.use("/user",userRouter)
-
-
-// //herw it will check the requestc convert it into json object ware
-
-// app.post("/user/register",async(req,res)=>{
-//     console.log(req,'chedck body')
-//    const userObj={
-//     firstName:req.body.firstName,
-//     lastName:req.body.lastName,
-//     emailId:req.body.emailId,
-//     password:req.body.password,
-//     age:req.body.age,
-//     gender:req.body.gender,
-//     role:req.body.role
-//    }
-//    const user=new User(userObj)
-//    try {
-//     // validateSignUpData(req)
-//     const saltRound=await bcrypt.genSalt(10)//more number more password safe
-//     user.password=await bcrypt.hash(user.password,saltRound)
-//      await user.save()
-//     res.send("register succsful")
-//    }catch(err){
-//     console.log(err,"chekc the eeorooa")
-//     res.status(400).send("Error 123",err.message)
-//    }
-   
-// })
-// app.get("/user/getUsers",async(req,res)=>{
-//     //  const user=new User()
-//     try{
-//     const user=await User.find()
-//       console.log(user,'chedck body')
-//     res.send(user)
-//     }catch(err){
-//         console.log(err)
-//         res.send("get users failed")
-//     }
-// })
-
-app.get("/user/getUsers",async(req,res)=>{
-    //  const user=new User()
-    try{
-    const user=await User.findOne({emailId:"akshay1@gmail.com"})
-      console.log(user,'chedck body')
-    res.send(user)
-    }catch(err){
-        console.log(err)
-        res.send("get users failed")
-    }
-})
-
-app.delete("/user/deleteUser",async(req,res)=>{
-    //  const emailId=req.body.emailId
-     console.log(req.body.id,'chedck bodyjadnjs')
-    try{
-    // const user=await User.findByIdAndDelete({emailId:"akshay1@gmail.com"})
-      const user=await User.findByIdAndDelete({_id:req.body.id})
-    res.send("user deletd succsefully")
-    }catch(err){
-        console.log(err)
-        res.send("user deletd failed")
-    }
-})
-
-app.patch("/user/updateUser",async(req,res)=>{
-    const userId=req.body.id
-     const userData=req.body
-     const ALLOWED_UPDTAES=["firstName","lastName","age","gender","role"]
-     const updateFields=Object.keys(userData).every(key=>ALLOWED_UPDTAES.includes(key))
-   
-    try{
-        if(!updateFields){
-            return res.status(400).send("invalid update fields")
-        }
-    // const user=await User.findByIdAndDelete({emailId:"akshay1@gmail.com"})
-      const user=await User.findByIdAndUpdate({_id:userId},userData,{returnDocument:"before"})
-      console.log(user,'chedck bodysfxvdjadnjs')
-    res.send(user)
-    }catch(err){        
-        console.log(err)
-        res.send("user updated failed")
-    }
-})
-
-app.patch("/user/updateUser/:userId",async(req,res)=>{
-    const userId=req.params.userId
-     const userData=req.body
-     const ALLOWED_UPDTAES=["firstName","lastName","age","gender","role"]
-     const updateFields=Object.keys(userData).every(key=>ALLOWED_UPDTAES.includes(key))
-   
-    try{
-        if(!updateFields){
-            return res.status(400).send("invalid update fields")
-        }
-    // const user=await User.findByIdAndDelete({emailId:"akshay1@gmail.com"})
-      const user=await User.findByIdAndUpdate({_id:userId},userData,{returnDocument:"before"})
-      console.log(user,'chedck bodysfxvdjadnjs')
-    res.send(user)
-    res.cookie("token","aksncjsabdchubashgbghj")
-    }catch(err){        
-        console.log(err)
-        res.send("user updated failed")
-    }
-})
-
-
-// app.post("/user/login",async(req,res)=>{
-//     const {emailId,password}=req.body
-//     console.log(emailId,typeof password,'check the email and password')
-//     try{
-//             const user=await User.findOne({emailId:emailId})
-//             console.log(user,'check the user data')
-//            if(!user){
-//             return res.status(400).send("user not found")
-//         }
-      
-     
-//         const isMatch=await user.verifyPassword(password)
-//              if(!isMatch){
-//             return res.status(400).send("invalid password")
-//         }
-//     const token=user.generateToken()
-//     console.log(token,'check the token')
-//       res.cookie("token",token,{expires:new Date(Date.now()+24*60*60*1000),httpOnly:true,secure:true,sameSite:"strict"})
-//     res.send(user)
-         
-        
-   
-//     }catch(err){
-//         console.log(err)
-//         res.status(400).send("login failed")
-//     }
-
-
-// })
-
-app.get("/user/profile",userAuth,async(req,res)=>{
-    //  const user=new User()
-    try{
- const user=req.user
-      if(!user){
-        return res.status(400).send("user does not found 123")
-      }
-     res.send(user)
-    }catch(err){
-        console.log(err)
-        res.send("get profile failed")
-    }
-})
+app.use("/chat",chatRouter)
 
 
 
-app.post("/sendConnectionRequest",userAuth,async(req,res)=>{
-    try{
-const user=req.user
-console.log(user,'check the user sendConnection request')
-        res.send("connection request sent successfully")
-     
-    }catch(err){
-        console.log(err)
-        res.send("connection sent failed")
-    }
-})
-
-
-
+const httpServer =createServer(app)
+socketConnection(httpServer)
 connectDB().then(() =>{
      console.log("Database connected established")
-app.listen(3000,()=>{
+httpServer.listen(process.env.PORT,()=>{
     console.log("successfull strat server")
 })
 

@@ -2,8 +2,9 @@ import express from "express";
 import User from "../model/user.js";
 import { userAuth } from "../middleware/auth.js";
 import ConnectionRequestModel from "../model/connectionRequest.js";
-const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
+// const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
 
+const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
 const userRouter = express.Router()
 //pending connection request
 userRouter.get("/requestReceived", userAuth, async (req, res) => {
@@ -43,7 +44,7 @@ userRouter.get("/connections", userAuth, async (req, res) => {
             ]
         }).populate("fromUserId", USER_SAFE_DATA).populate("toUserId", USER_SAFE_DATA)
 
-        console.log(connectionRequest, "check the connection request asdhh")
+        // console.log(connectionRequest, "check the connection request asdhh")
 
         //to check the connection send from to user or from user
         const data = connectionRequest.map((row) => {
@@ -55,7 +56,9 @@ userRouter.get("/connections", userAuth, async (req, res) => {
             }
         })
 
-        res.send({ data: connectionRequest })
+
+
+        res.json({ data: data })
 
     } catch (err) {
         console.log(err, "check the error connection userr")

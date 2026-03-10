@@ -75,7 +75,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.methods.generateToken = function () {
     const user = this
-    return jwt.sign({ _id: user._id }, "2594@KKi123", { expiresIn: "7d" })
+    return jwt.sign({ _id: user._id }, process.env.JWT_SECRETE_KEY, { expiresIn: "7d" })
 }
 userSchema.methods.verifyPassword = async function (passwordInputByUser) {
     const user = this
