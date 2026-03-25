@@ -12,34 +12,30 @@ import profileRouter from "./routes/profile.js"
 import userRouter from "./routes/user.js"
 import cors from "cors";
 import dotenv from "dotenv";
-
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { socketConnection } from "./utils/socket.js";
 import chatRouter from "./routes/chat.js";
+
 dotenv.config();
-app.use(cookieParser())//middleware
-app.use(express.json());//the data send in request is in json format so we need to use the express.json here we need the middle
-
-
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://devtinder-7klx5f48r-akshay-khatkes-projects.vercel.app",
-];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || origin.includes("vercel.app") || origin.includes("localhost")) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   })
 );
+
+app.use(cookieParser())//middleware
+app.use(express.json());//the data send in request is in json format so we need to use the express.json here we need the middle
 
 
 app.use("/auth",authRouter)
