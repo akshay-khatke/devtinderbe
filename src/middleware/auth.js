@@ -8,7 +8,7 @@ export const userAuth = async (req, res, next) => {
         if (!token) {
             return res.status(401).send("invalid token")
         }
-        const isTokenValid = jwt.verify(token, "2594@KKi123")
+        const isTokenValid = await jwt.verify(token, process.env.JWT_SECRETE_KEY)
         // console.log(isTokenValid._id, 'check the token VERIFY')
         const user = await User.findById(isTokenValid._id)
         if (!user) {

@@ -31,6 +31,9 @@ authRouter.post("/signUp", async (req, res) => {
 
         res.cookie("token", token, {
             expires: new Date(Date.now() + 8 * 3600000),
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
         });
 
         res.json({ message: "User Added successfully!", data: savedUser });
@@ -83,7 +86,12 @@ authRouter.post("/login", async (req, res) => {
             return res.status(400).send("invalid password")
         }
         const token = user.generateToken()
-        res.cookie("token", token, { expires: new Date(Date.now() + 24 * 60 * 60 * 1000) })
+        res.cookie("token", token, {
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        });
         res.send(user)
 
 
@@ -98,8 +106,12 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", (req, res) => {
     try {
-        res.clearCookie("token")
-        res.cookie("token", null, { expires: new Date(Date.now()) }).send("logout successfully")
+        res.cookie("token", null, {
+            expires: new Date(Date.now()),
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+        }).send("logout successfully")
     } catch (err) {
         console.log(err)
         res.status(400).send("logout failed")
