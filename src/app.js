@@ -23,7 +23,7 @@ app.use(express.json());//the data send in request is in json format so we need 
 
 
 app.use(cors({
-    origin:"http://localhost:5173",
+    origin:"https://devtinderbe-bu8v.onrender.com",
     credentials:true
 }));
 

@@ -10,7 +10,7 @@ const getSecreteRoomId = (userId, targetUserId) => {
 export const socketConnection = (serverConnection) => {
     const io = new Server(serverConnection, {
         cors: {
-            origin: "http://localhost:5173",
+            origin: "https://devtinderbe-bu8v.onrender.com",
             credentials: true,
         }
     });
