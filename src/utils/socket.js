@@ -10,7 +10,11 @@ const getSecreteRoomId = (userId, targetUserId) => {
 export const socketConnection = (serverConnection) => {
     const io = new Server(serverConnection, {
         cors: {
-            origin: "https://devtinderbe-bu8v.onrender.com",
+            origin: [
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://devtinder-7klx5f48r-akshay-khatkes-projects.vercel.app"
+            ],
             credentials: true,
         }
     });

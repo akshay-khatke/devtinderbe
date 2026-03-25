@@ -22,10 +22,24 @@ app.use(cookieParser())//middleware
 app.use(express.json());//the data send in request is in json format so we need to use the express.json here we need the middle
 
 
-app.use(cors({
-    origin:"https://devtinderbe-bu8v.onrender.com",
-    credentials:true
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://devtinder-7klx5f48r-akshay-khatkes-projects.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 
 app.use("/auth",authRouter)
