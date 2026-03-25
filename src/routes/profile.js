@@ -26,7 +26,6 @@ profileRouter.get("/view", userAuth, (req, res) => {
         if (!user) {
             return res.status(400).send("user does not found 123")
         }
-        console.log(user, 'check the user data 12344888')
 
         res.send(user)
     } catch (err) {
@@ -45,7 +44,6 @@ profileRouter.patch("/edit", userAuth, async (req, res) => {
         Object.keys(req.body).forEach(key => {
             user[key] = req.body[key]
         })
-        console.log(user, 'check the user data 12344888')
         await user.save()
         res.send({ message: "profile updated successfully", data: user })
 

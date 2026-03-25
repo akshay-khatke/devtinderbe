@@ -2,6 +2,7 @@ import express from "express";
 import User from "../model/user.js";
 import bcrypt from "bcrypt";
 import { validateSignUpData } from "../utils/validation.js";
+import { userAuth } from "../middleware/auth.js";
 
 const authRouter = express.Router()
 
@@ -44,6 +45,29 @@ authRouter.post("/signUp", async (req, res) => {
         res.status(400).send(`Error: ${err.message}`)
     }
 })
+
+
+authRouter.patch("/changePassword", userAuth, async (req, res) => {
+    try {
+        const user = req.user
+        const { oldPassword, newPassword } = req.body
+        const isMatch = await user.verifyPassword(oldPassword)
+        if (!isMatch) {
+            return res.status(400).send("Invalid password")
+        }
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        user.password = passwordHash
+        console.log(user, 'Check the user data')
+        await user.save()
+        res.send({ message: "Password changed successfully", data: user })
+
+    } catch (err) {
+        console.log(err)
+        res.send("Change password failed")
+    }
+})
+
+
 authRouter.post("/login", async (req, res) => {
     const { emailId, password } = req.body
     try {

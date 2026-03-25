@@ -5,77 +5,76 @@ import ConnectionRequestModel from "../model/connectionRequest.js";
 
 const getSecreteRoomId = (userId, targetUserId) => {
     return crypto.createHash("sha256").update([userId, targetUserId].sort().join("_")).digest("hex");
-}
+};
 
 export const socketConnection = (serverConnection) => {
     const io = new Server(serverConnection, {
         cors: {
             origin: "http://localhost:5173",
+            credentials: true,
         }
     });
 
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
 
+        // Join a private room between two users
         socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
             const roomId = getSecreteRoomId(userId, targetUserId);
             socket.join(roomId);
             console.log(`${firstName} joined room ${roomId}`);
         });
 
+        // Send a message via socket
         socket.on("sendMessage", async ({ firstName, userId, targetUserId, textMessage }) => {
-            const chat = await Chat.findOne({ participents: { $all: [userId, targetUserId] } })
-            //save message in db
-
-            // first check the existing message or not 
-            // if yes push if no create new chat
             try {
                 const roomId = getSecreteRoomId(userId, targetUserId);
 
-                console.log("Room:", roomId);
-                console.log("Message:", firstName, textMessage);
-
+                // Check if both users are connected (accepted request)
                 const existingRequest = await ConnectionRequestModel.findOne({
                     $or: [
-                        { userId, targetUserId },
-                        { fromUserId: targetUserId, toUserId: fromUserId }
+                        { fromUserId: userId, toUserId: targetUserId, status: "accepted" },
+                        { fromUserId: targetUserId, toUserId: userId, status: "accepted" }
                     ]
-                })
-
+                });
 
                 if (!existingRequest) {
-                    return res.status(400).send({ "message": "please send request to user" })
+                    socket.emit("error", { message: "You are not connected with this user" });
+                    return;
                 }
 
-                let chat = await Chat.findOne({ participents: { $all: [userId, targetUserId] } })
-                if (!chat) {
+                // Find or create chat
+                let chat = await Chat.findOne({
+                    participents: { $all: [userId, targetUserId] }
+                });
 
+                if (!chat) {
                     chat = new Chat({
                         participents: [userId, targetUserId],
-                        messages: [{
-                            senderId: userId,
-                            message: textMessage
-                        }
-                        ]
-                    })
-
+                        messages: []
+                    });
                 }
 
+                // Push message once
                 chat.messages.push({
                     senderId: userId,
                     message: textMessage
-                })
-                await chat.save()
+                });
 
+                await chat.save();
+
+                // Emit to everyone in the room
                 io.to(roomId).emit("messageReceived", {
                     firstName,
-                    textMessage
+                    textMessage,
+                    senderId: userId,
+                    timestamp: new Date()
                 });
+
             } catch (err) {
-                console.log(err.message)
+                console.error("sendMessage error:", err.message);
+                socket.emit("error", { message: "Failed to send message" });
             }
-
-
         });
 
         socket.on("disconnect", () => {
