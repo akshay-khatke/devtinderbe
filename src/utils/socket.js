@@ -10,11 +10,13 @@ const getSecreteRoomId = (userId, targetUserId) => {
 export const socketConnection = (serverConnection) => {
     const io = new Server(serverConnection, {
         cors: {
-            origin: [
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "https://devtinder-7klx5f48r-akshay-khatkes-projects.vercel.app"
-            ],
+            origin: (origin, callback) => {
+                if (!origin || origin.includes("vercel.app") || origin.includes("localhost")) {
+                    callback(null, true);
+                } else {
+                    callback(new Error("Not allowed by CORS"));
+                }
+            },
             credentials: true,
         }
     });
