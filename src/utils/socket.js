@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import crypto from "crypto";
 import Chat from "../model/chat.js";
 import ConnectionRequestModel from "../model/connectionRequest.js";
+import User from "../model/user.js";
 
 const getSecreteRoomId = (userId, targetUserId) => {
     return crypto.createHash("sha256").update([userId, targetUserId].sort().join("_")).digest("hex");
@@ -24,11 +25,26 @@ export const socketConnection = (serverConnection) => {
     io.on("connection", (socket) => {
         console.log("User connected:", socket.id);
 
+        // Register user and mark online globally
+        socket.on("registerUser", async ({ userId }) => {
+            socket.userId = userId;
+            await User.findByIdAndUpdate(userId, { isOnline: true });
+            io.emit("userStatusChange", { userId: userId, isOnline: true });
+            console.log(`User ${userId} registered as online.`);
+        });
+
         // Join a private room between two users
-        socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
+        socket.on("joinChat", async ({ firstName, userId, targetUserId }) => {
             const roomId = getSecreteRoomId(userId, targetUserId);
             socket.join(roomId);
             console.log(`${firstName} joined room ${roomId}`);
+
+            // Mark user as online when they join or start activity
+            socket.userId = userId; // Store userId on the socket object
+            await User.findByIdAndUpdate(userId, { isOnline: true });
+            
+            // Notify others
+            io.emit("userStatusChange", { userId: userId, isOnline: true });
         });
 
         // Send a message via socket
@@ -86,8 +102,16 @@ export const socketConnection = (serverConnection) => {
             }
         });
 
-        socket.on("disconnect", () => {
+        socket.on("disconnect", async () => {
             console.log("User disconnected:", socket.id);
+            if (socket.userId) {
+                await User.findByIdAndUpdate(socket.userId, { 
+                    isOnline: false, 
+                    lastSeen: new Date() 
+                });
+                // Notify others
+                io.emit("userStatusChange", { userId: socket.userId, isOnline: false });
+            }
         });
     });
 };
