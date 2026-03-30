@@ -19,6 +19,8 @@ import chatRouter from "./routes/chat.js";
 
 dotenv.config();
 
+//origin.endsWith(".vercel.app") edge case
+
 app.use(
   cors({
     origin: (origin, callback) => {

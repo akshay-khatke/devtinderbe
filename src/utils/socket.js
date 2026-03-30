@@ -50,6 +50,9 @@ export const socketConnection = (serverConnection) => {
                 }
 
                 // Find or create chat
+                //msg should go for right person
+                //wrong chats should not open 
+                //no data misxing
                 let chat = await Chat.findOne({
                     participents: { $all: [userId, targetUserId] }
                 });
