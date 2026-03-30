@@ -16,6 +16,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { socketConnection } from "./utils/socket.js";
 import chatRouter from "./routes/chat.js";
+import paymentRouter from "./routes/payment.js";
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use("/request",requestRouter)
 app.use("/profile",profileRouter)
 app.use("/user",userRouter)
 app.use("/chat",chatRouter)
+app.use("/payment", paymentRouter);
 
 
 

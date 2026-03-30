@@ -67,6 +67,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "This is a default about of the user!",
     },
+    membershipType: {
+        type: String,
+        default: "free",
+        enum: ["free", "silver", "gold"]
+    }
 },
     {
         timestamps: true
