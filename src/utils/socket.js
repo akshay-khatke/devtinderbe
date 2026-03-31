@@ -11,7 +11,13 @@ export const socketConnection = (serverConnection) => {
     const io = new Server(serverConnection, {
         cors: {
             origin: (origin, callback) => {
-                if (!origin || origin.includes("vercel.app") || origin.includes("localhost")) {
+                const allowedOrigins = [
+                    "http://localhost:5173",
+                    "http://localhost:3000",
+                    "http://localhost:10000", // The user's backend port
+                    "http://127.0.0.1:5173",
+                ];
+                if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
                     callback(null, true);
                 } else {
                     callback(new Error("Not allowed by CORS"));
