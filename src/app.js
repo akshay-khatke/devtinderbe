@@ -55,7 +55,7 @@ socketConnection(httpServer)
 connectDB().then(() =>{
      console.log("Database connected established")
 httpServer.listen(process.env.PORT,()=>{
-    console.log("successfull strat server")
+    console.log(process.env.PORT,"successfull strat server")
 })
 
 

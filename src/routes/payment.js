@@ -9,17 +9,18 @@ const paymentRouter = express.Router();
 
 // Route to Create a Razorpay Order
 paymentRouter.post("/create", userAuth, async (req, res) => {
+  console.log("req check 1", req.body)
   try {
     const { amount, currency } = req.body; // amount in smallest unit (e.g., paise for INR)
 
     const options = {
       amount: amount * 100, // razorpay expects amount in paise
       currency: currency || "INR",
-      receipt: `receipt_${req.user._id}_${Date.now()}`,
+      receipt: `rcpt_${req.user._id.toString().slice(-10)}_${Date.now().toString().slice(-10)}`,
     };
-
+    console.log("req check 2", options)
     const order = await razorpayInstance.orders.create(options);
-
+    console.log("req check 3", order)
     // Save initial payment entry in DB
     const newPayment = new Payment({
       userId: req.user._id,
@@ -28,9 +29,9 @@ paymentRouter.post("/create", userAuth, async (req, res) => {
       currency: options.currency,
       status: "pending",
     });
-
+    console.log("req check 4", newPayment)
     await newPayment.save();
-
+    console.log("req check 5", newPayment)
     res.status(200).json({
       success: true,
       orderId: order.id,
@@ -38,6 +39,7 @@ paymentRouter.post("/create", userAuth, async (req, res) => {
       currency: order.currency,
     });
   } catch (err) {
+    console.log(err, "error chekc")
     res.status(500).json({ success: false, error: err.message });
   }
 });

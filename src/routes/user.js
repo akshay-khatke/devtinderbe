@@ -121,10 +121,8 @@ userRouter.get("/feed", userAuth, async (req, res) => {
         }).select("firstName lastName emailId photoUrl age gender about skills").skip(skip).limit(limit)
 
         // if thousenads of user are there so evry time i doent want to send the all user i want 10 users at time so need pagination 
-        console.log(users, "check the users uasja")
-        console.log(blockUsers, users, "check the block users")
+
         res.json({ data: users })
-        console.log(connectionRequest, "check the connection request")
 
     } catch (err) {
         console.log(err)
