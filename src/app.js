@@ -16,6 +16,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { socketConnection } from "./utils/socket.js";
 import chatRouter from "./routes/chat.js";
+import resumeRouter from "./routes/resume.js";
 
 dotenv.config();
 
@@ -24,7 +25,14 @@ dotenv.config();
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || origin.includes("vercel.app") || origin.includes("localhost")) {
+      const allowedOrigins = [
+        "https://devtinder-ixaw94g93-akshay-khatkes-projects.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174"
+      ];
+      if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app") || origin.includes("localhost")) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -45,6 +53,7 @@ app.use("/request",requestRouter)
 app.use("/profile",profileRouter)
 app.use("/user",userRouter)
 app.use("/chat",chatRouter)
+app.use("/resume", resumeRouter)
 
 
 
