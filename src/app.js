@@ -17,6 +17,7 @@ import { Server } from "socket.io";
 import { socketConnection } from "./utils/socket.js";
 import chatRouter from "./routes/chat.js";
 import resumeRouter from "./routes/resume.js";
+import chatbotRouter from "./routes/chatbot.js";
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use("/profile",profileRouter)
 app.use("/user",userRouter)
 app.use("/chat",chatRouter)
 app.use("/resume", resumeRouter)
+app.use("/chatbot", chatbotRouter)
 
 
 
