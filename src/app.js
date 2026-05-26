@@ -58,18 +58,20 @@ app.use("/resume", resumeRouter)
 app.use("/chatbot", chatbotRouter)
 
 
-
 const httpServer =createServer(app)
 socketConnection(httpServer)
 connectDB().then(() =>{
      console.log("Database connected established")
-httpServer.listen(process.env.PORT,()=>{
-    console.log("successfull strat server")
+     const PORT = process.env.PORT || 7777; // Render port देईल, नाहीतर 7777 घेईल
+     httpServer.listen(PORT,()=>{
+         console.log("successfully started server on port " + PORT)
+     })
+})
+.catch((err) => {
+     console.error("Database connection failed:", err);
+     process.exit(1); // हे ॲप्लिकेशनला एरर सोबत थांबवेल, जेणेकरून Render ला एरर समजेल
 })
 
-
-})
-    .catch((err) => console.log(err))
 
 
 
