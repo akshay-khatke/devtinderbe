@@ -1,3 +1,4 @@
+// REST API's
 import express from "express";
 import Chat from "../model/chat.js";
 import { userAuth } from "../middleware/auth.js";

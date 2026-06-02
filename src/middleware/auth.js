@@ -3,7 +3,7 @@ import User from "../model/user.js";
 
 export const userAuth = async (req, res, next) => {
     try {
-        const token = req.cookies.token
+        const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
         // console.log(req.cookies, 'check the token in middleware')
         if (!token) {
             return res.status(401).send("invalid token")
