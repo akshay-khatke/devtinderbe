@@ -36,7 +36,7 @@ authRouter.post("/signUp", async (req, res) => {
             sameSite: "none",
         });
 
-        res.json({ message: "User Added successfully!", data: savedUser });
+        res.json({ message: "User Added successfully!", data: savedUser, token });
 
 
 
@@ -92,7 +92,10 @@ authRouter.post("/login", async (req, res) => {
             secure: true,
             sameSite: "none",
         });
-        res.send(user)
+        res.json({
+            token,
+            ...user.toObject()
+        });
 
 
 

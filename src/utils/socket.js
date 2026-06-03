@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import crypto from "crypto";
+import mongoose from "mongoose";
 import Chat from "../model/chat.js";
 import ConnectionRequestModel from "../model/connectionRequest.js";
 
@@ -16,7 +17,7 @@ export const socketConnection = (serverConnection) => {
                     "http://127.0.0.1:5174",
                     "http://localhost:5173",
                     "http://localhost:3000",
-                    "http://localhost:10000", // The user's backend port
+                    "http://localhost:10000",
                     "http://127.0.0.1:5173",
                 ];
                 if (!origin || allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
@@ -34,62 +35,83 @@ export const socketConnection = (serverConnection) => {
 
         // Join a private room between two users
         socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
-            const roomId = getSecreteRoomId(userId, targetUserId);
+            if (!userId || !targetUserId) {
+                console.error("joinChat missing userId or targetUserId:", { userId, targetUserId });
+                return;
+            }
+            const uidStr = String(userId);
+            const tuidStr = String(targetUserId);
+            const roomId = getSecreteRoomId(uidStr, tuidStr);
             socket.join(roomId);
-            console.log(`${firstName} joined room ${roomId}`);
+            console.log(`[Socket] ${firstName} (ID: ${uidStr}) joined room: ${roomId} with target: ${tuidStr}`);
         });
 
         // Send a message via socket
         socket.on("sendMessage", async ({ firstName, userId, targetUserId, textMessage }) => {
+            console.log(`[Socket] sendMessage received from ${firstName} (ID: ${userId}) to ${targetUserId}: "${textMessage}"`);
             try {
-                const roomId = getSecreteRoomId(userId, targetUserId);
+                if (!userId || !targetUserId) {
+                    console.error("[Socket] sendMessage error: missing userId or targetUserId");
+                    socket.emit("error", { message: "Invalid sender or receiver ID" });
+                    return;
+                }
 
+                const uidStr = String(userId);
+                const tuidStr = String(targetUserId);
+                const roomId = getSecreteRoomId(uidStr, tuidStr);
+
+                // Explicitly cast to mongoose.Types.ObjectId to ensure MongoDB queries match perfectly
+                const fromUserObjectId = new mongoose.Types.ObjectId(uidStr);
+                const toUserObjectId = new mongoose.Types.ObjectId(tuidStr);
+
+                console.log(`[Socket] Checking connection request between ${uidStr} and ${tuidStr}`);
                 // Check if both users are connected (accepted request)
                 const existingRequest = await ConnectionRequestModel.findOne({
                     $or: [
-                        { fromUserId: userId, toUserId: targetUserId, status: "accepted" },
-                        { fromUserId: targetUserId, toUserId: userId, status: "accepted" }
+                        { fromUserId: fromUserObjectId, toUserId: toUserObjectId, status: "accepted" },
+                        { fromUserId: toUserObjectId, toUserId: fromUserObjectId, status: "accepted" }
                     ]
                 });
 
                 if (!existingRequest) {
+                    console.warn(`[Socket] Connection NOT accepted or doesn't exist between ${uidStr} and ${tuidStr}`);
                     socket.emit("error", { message: "You are not connected with this user" });
                     return;
                 }
 
+                console.log(`[Socket] Connection verified. Finding or creating chat...`);
                 // Find or create chat
-                //msg should go for right person
-                //wrong chats should not open 
-                //no data misxing
                 let chat = await Chat.findOne({
-                    participents: { $all: [userId, targetUserId] }
+                    participents: { $all: [fromUserObjectId, toUserObjectId] }
                 });
 
                 if (!chat) {
+                    console.log(`[Socket] Creating new chat document for participants.`);
                     chat = new Chat({
-                        participents: [userId, targetUserId],
+                        participents: [fromUserObjectId, toUserObjectId],
                         messages: []
                     });
                 }
 
                 // Push message once
                 chat.messages.push({
-                    senderId: userId,
+                    senderId: fromUserObjectId,
                     message: textMessage
                 });
 
                 await chat.save();
+                console.log(`[Socket] Message saved to database. Emitting messageReceived to room: ${roomId}`);
 
                 // Emit to everyone in the room
                 io.to(roomId).emit("messageReceived", {
                     firstName,
                     textMessage,
-                    senderId: userId,
+                    senderId: uidStr,
                     timestamp: new Date()
                 });
 
             } catch (err) {
-                console.error("sendMessage error:", err.message);
+                console.error("[Socket] sendMessage exception:", err.message);
                 socket.emit("error", { message: "Failed to send message" });
             }
         });
