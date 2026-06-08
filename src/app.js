@@ -1,5 +1,6 @@
 console.log("start dev tinder")
 import express from "express";
+import path from "path";
 const app=express()
 import connectDB from './config/database.js'
 // import {adminAuth,userAuth} from"./middleware/auth.js"/
@@ -47,6 +48,7 @@ app.use(
 
 app.use(cookieParser())//middleware
 app.use(express.json());//the data send in request is in json format so we need to use the express.json here we need the middle
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 
 app.use("/auth",authRouter)
