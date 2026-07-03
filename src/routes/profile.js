@@ -56,5 +56,23 @@ profileRouter.patch("/edit", userAuth, async (req, res) => {
 
 
 
+profileRouter.patch("/fcm-token", userAuth, async (req, res) => {
+    try {
+        const { token } = req.body;
+        const user = req.user;
+
+        if (!token) {
+            return res.status(400).json({ message: "FCM Token is required" });
+        }
+
+        user.fcmToken = token;
+        await user.save();
+
+        res.json({ message: "FCM Token saved successfully", data: user });
+    } catch (err) {
+        console.log("Error saving FCM Token:", err);
+        res.status(500).json({ message: "Error saving FCM Token" });
+    }
+});
 
 export default profileRouter

@@ -2,6 +2,7 @@ import express from "express";
 import { userAuth } from "../middleware/auth.js";
 import ConnectionRequestModel from "../model/connectionRequest.js";
 import user from "../model/user.js";
+import { sendPushNotification } from "../utils/notification.js";
 
 
 const requestRouter = express.Router()
@@ -48,6 +49,15 @@ requestRouter.post("/send/:status/:toUserId", userAuth, async (req, res) => {
             status
         })
         const data = await coonectionRequest.save();
+
+        if (toUser && toUser.fcmToken) {
+            sendPushNotification(
+                toUser.fcmToken,
+                "New Connection Request",
+                `${req.user.firstName} is interested in your profile.`
+            );
+        }
+
         res.json({
             message: req.user.firstName + " is " + status + " in " + toUser.firstName,
             data

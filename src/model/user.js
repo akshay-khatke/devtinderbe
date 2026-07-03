@@ -62,6 +62,9 @@ const userSchema = new mongoose.Schema({
     skills: {
         type: [String],
     },
+    fcmToken: {
+        type: String,
+    },
 
     about: {
         type: String,

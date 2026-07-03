@@ -2,6 +2,8 @@ import express from "express";
 import Chat from "../model/chat.js";
 import { userAuth } from "../middleware/auth.js";
 import ConnectionRequestModel from "../model/connectionRequest.js";
+import User from "../model/user.js";
+import { sendPushNotification } from "../utils/notification.js";
 
 const chatRouter = express.Router();
 
@@ -94,6 +96,16 @@ chatRouter.post("/sendMessage/:targetUserId", userAuth, async (req, res) => {
         });
 
         await chat.save();
+
+        const toUser = await User.findById(targetUserId);
+        if (toUser && toUser.fcmToken) {
+            sendPushNotification(
+                toUser.fcmToken,
+                `New message from ${req.user.firstName}`,
+                textMessage.trim(),
+                { type: "chat", senderId: req.user._id.toString() }
+            );
+        }
 
         // Populate sender info before returning
         const savedChat = await Chat.findById(chat._id).populate({
