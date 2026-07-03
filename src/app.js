@@ -4,9 +4,9 @@ const app=express()
 import { apolloServer } from "./graphql/index.js";
 import { expressMiddleware } from "@as-integrations/express5";
 import connectDB from './config/database.js'
-// import {adminAuth,userAuth} from"./middleware/auth.js"/
-import User from "./model/user.js";
-import { validateSignUpData } from "./utils/validation.js";
+import jwt from "jsonwebtoken";
+
+// import {adminAuth,userAuth} from"./middleware/auth.js"
 import cookieParser from "cookie-parser"; //if we want the read the cookies for that we will require this
 import authRouter from "./routes/auth.js"
 import requestRouter from "./routes/request.js"
@@ -66,7 +66,23 @@ socketConnection(httpServer)
 const startServer = async () => {
   try {
     await apolloServer.start();
-    app.use('/graphql', expressMiddleware(apolloServer));
+ 
+// नवीन लाईन:
+app.use('/graphql', expressMiddleware(apolloServer, {
+  context: async ({ req, res }) => {
+    let user = null;
+    const token = req.cookies?.token || req.headers.authorization?.replace("Bearer ", "");
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRETE_KEY);
+        user = await User.findById(decoded._id);
+      } catch (err) {
+        // invalid token, user remains null
+      }
+    }
+    return { req, res, user };
+  },
+}));
 
     await connectDB();
     console.log("Database connected established")
