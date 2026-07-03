@@ -6,6 +6,7 @@ import Chat from "../model/chat.js";
 import ChatBotMessage from "../model/chatbotMessage.js";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
+import { sendPushNotification } from "../utils/notification.js";
 
 const typeDefs = `#graphql
   type User {
@@ -78,6 +79,7 @@ const typeDefs = `#graphql
     reviewConnectionRequest(requestId: ID!, status: String!): ConnectionRequest
     sendMessage(targetUserId: ID!, textMessage: String!): Message
     askChatbot(message: String!): String
+    saveFCMToken(token: String!): String
   }
 `;
 
@@ -325,7 +327,17 @@ const resolvers = {
           status
         });
         
-        return await connectionRequest.save();
+        const savedRequest = await connectionRequest.save();
+
+        if (toUser.fcmToken) {
+          sendPushNotification(
+            toUser.fcmToken, 
+            "New Connection Request", 
+            `${context.user.firstName} is interested in your profile.`
+          );
+        }
+        
+        return savedRequest;
       } catch (error) {
         throw new Error(error.message);
       }
@@ -379,6 +391,16 @@ const resolvers = {
         });
         
         await chat.save();
+
+        const toUser = await User.findById(targetUserId);
+        if (toUser && toUser.fcmToken) {
+          sendPushNotification(
+            toUser.fcmToken, 
+            `New message from ${context.user.firstName}`, 
+            textMessage.trim()
+          );
+        }
+
         return chat.messages[chat.messages.length - 1];
       } catch (err) {
         throw new Error(err.message);
@@ -413,6 +435,16 @@ const resolvers = {
         return response;
       } catch (error) {
         throw new Error("Failed to get response from chatbot: " + error.message);
+      }
+    },
+    saveFCMToken: async (_, { token }, context) => {
+      if (!context.user) throw new Error("Unauthorized");
+      try {
+        context.user.fcmToken = token;
+        await context.user.save();
+        return "FCM Token saved successfully";
+      } catch (error) {
+        throw new Error("Failed to save FCM token: " + error.message);
       }
     }
   },
