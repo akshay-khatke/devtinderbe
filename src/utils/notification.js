@@ -1,7 +1,7 @@
-import admin from "../config/firebase.js";
+import { messaging } from "../config/firebase.js";
 
 export const sendPushNotification = async (fcmToken, title, body, data = {}) => {
-  if (!admin) {
+  if (!messaging) {
     console.warn("Firebase Admin is not initialized. Notification will not be sent.");
     return false;
   }
@@ -21,7 +21,7 @@ export const sendPushNotification = async (fcmToken, title, body, data = {}) => 
   };
 
   try {
-    const response = await admin.messaging().send(message);
+    const response = await messaging.send(message);
     console.log("Successfully sent notification:", response);
     return true;
   } catch (error) {

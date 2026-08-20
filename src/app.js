@@ -63,7 +63,7 @@ socketConnection(httpServer)
 connectDB().then(() =>{
      console.log("Database connected established")
      const PORT = process.env.PORT || 7777; // Render port देईल, नाहीतर 7777 घेईल
-     httpServer.listen(PORT,()=>{
+     httpServer.listen(PORT, '0.0.0.0', ()=>{
          console.log("successfully started server on port " + PORT)
      })
 })

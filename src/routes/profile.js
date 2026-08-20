@@ -18,13 +18,14 @@ profileRouter.get("/getDetails", userAuth, (req, res) => {
         res.send("get profile failed")
     }
 })
+
 profileRouter.get("/view", userAuth, (req, res) => {
     //  const user=new User()
-    console.log('check the user data 12344')
+
     try {
         const user = req.user
         if (!user) {
-            return res.status(400).send("user does not found 123")
+            return res.status(400).send("User does not found")
         }
 
         res.send(user)
